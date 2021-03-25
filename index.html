@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Social Buddy</title>
+    <style>
+      body {
+        text-align: center;
+      }
+    </style>
+  </head>
+  <body>
+    <header>
+      <h1>social-Buddy</h1>
+    </header>
+    <main>
+      <section>
+        <div>
+          <form action="addPost" method="POST">
+            <input
+              type="text"
+              name="fullName"
+              id="fullName"
+              placeholder="Full Name"
+            />
+            <input type="submit" value="Post Now" />
+            <br />
+            <textarea
+              type="text"
+              name="post"
+              id="post"
+              placeholder="Write your post here"
+              cols="40"
+              rows="10"
+            ></textarea>
+          </form>
+        </div>
+        <div id="modifyer"></div>
+        <div id="updatePost"></div>
+      </section>
+    </main>
+    <script>
+      function handlePost() {
+        fetch("/posts/")
+          .then((res) => res.json())
+          .then((result) => {
+            console.log("get result from", result);
+            const container = document.getElementById("modifyer");
+            container.innerHTML = "";
+            result.forEach((pd) => {
+              container.innerHTML += `
+              <p>Name: ${pd.fullName} <br> Post: <br> ${pd.post} <br>
+                <button onclick="updateProduct('${pd._id}')">Update</button>
+                <button onclick="handleDelete(event, '${pd._id}')">Delete</button>
+                </P>
+              `;
+            });
+          });
+      }
+
+      handlePost();
+
+      function updateProduct(id) {
+        fetch(`/post${id}`)
+          .then((res) => res.json())
+          .then((data) => {
+            console.log("get data", data);
+            const update = document.getElementById("updatePost");
+            update.innerHTML = "";
+            update.innerHTML += `
+              <h3>Product Id: ${data._id}</h3>
+              <input type="text" value=${data.fullName} id="name"/>
+              <br>
+              <textarea name="post" id="post" cols="40" rows="10" value=${data.post}></textarea>
+              <br>
+              <button onclick="handleProductUpdate('${data._id}')">Submit</button>
+              `;
+          });
+      }
+
+      function handleProductUpdate(id) {
+        const name = document.getElementById("fullName").value;
+        const post = document.getElementById("post").value;
+        const posts = { id, name, post };
+        fetch(`/update${id}`, {
+          method: "PATCH",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(posts),
+        })
+          .then((res) => res.json())
+          .then((result) => {
+            if (result) {
+              handlePost();
+            }
+          });
+      }
+
+      function handleDelete(event, id) {
+        fetch(`/delete${id}`, {
+          method: "DELETE",
+        })
+          .then((res) => res.json())
+          .then((result) => {
+            if (result) {
+              event.target.parentNode.style.display = "none";
+            }
+          });
+      }
+    </script>
+  </body>
+</html>
